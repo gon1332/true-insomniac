@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import atexit
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
@@ -10,37 +11,17 @@ TARGET_URL = "http://www.insomnia.gr/index.php?app=core&module=search&do=user_ac
 USER = "username"
 PASS = "password"
 
+# create driver
 driver = webdriver.PhantomJS()
+atexit.register(driver.close)
+
+# login
 driver.get(LOGIN_URL)
-assert "Insomnia" in driver.title
+driver.find_element_by_id("ips_username").send_keys(USER)
+driver.find_element_by_id("ips_password").send_keys(PASS)
+driver.find_element_by_class_name("input_submit").submit()
 
-try:
-    user_elem = driver.find_element_by_name("ips_username")
-    pass_elem = driver.find_element_by_name("ips_password")
-except NoSuchElementException as e:
-    print(e)
-    driver.close()
-    exit()
-
-user_elem.send_keys(USER)
-pass_elem.send_keys(PASS)
-
-try:
-    pass_elem.submit()
-except NoSuchElementException as e:
-    print(e)
-    driver.close()
-    exit()
-
+# get unread messages
 driver.get(TARGET_URL)
-
-try:
-    unread_elems = driver.find_elements_by_class_name("unread")
-except NoSuchElementException as e:
-    print(e)
-    driver.close()
-    exit()
-
+unread_elems = driver.find_elements_by_class_name("unread")
 print("\u2605", len(unread_elems))
-
-driver.close()
